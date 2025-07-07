@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         :root {
-            --primary: #E53935; /* Красный для TT */
+            --primary: #E53935;
             --secondary: #D32F2F;
             --bg: #f5f7fa;
             --card: #ffffff;
@@ -16,9 +16,9 @@
             padding: 0;
             background: var(--bg);
             color: var(--text);
-            -webkit-touch-callout: none; /* iOS Safari */
-            -webkit-user-select: none; /* Safari */
-            user-select: none; /* Стандартный синтаксис */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
         .container {
             max-width: 600px;
@@ -69,14 +69,12 @@
             border-radius: 6px;
             font-size: 16px;
             background: #f9f9f9;
+            caret-color: transparent; /* Скрываем курсор */
         }
-        .custom-input[readonly] {
-            cursor: default;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-        .custom-input[readonly]:focus {
+        .custom-input:focus {
             outline: none;
+            border: 2px solid var(--primary);
+            background: #FFF9C4;
         }
         .odds-grid {
             display: grid;
@@ -123,12 +121,14 @@
             border-radius: 4px;
         }
         .keyboard {
-            display: grid;
+            display: none;
             grid-template-columns: repeat(4, 1fr);
             gap: 5px;
             padding: 10px;
             background: #f5f5f5;
             border-top: 1px solid #ddd;
+            position: sticky;
+            bottom: 0;
         }
         .key {
             background: white;
@@ -144,10 +144,6 @@
             background: var(--primary);
             color: white;
             grid-column: span 2;
-        }
-        .active-input {
-            border: 2px solid var(--primary) !important;
-            background: #FFF9C4 !important;
         }
     </style>
 </head>
@@ -169,11 +165,11 @@
         <div class="input-section">
             <div class="input-group">
                 <label>Коэффициент на П1:</label>
-                <input type="text" class="custom-input" id="odds-p1" placeholder="1.75" readonly>
+                <input type="text" class="custom-input" id="odds-p1" placeholder="1.75" inputmode="none">
             </div>
             <div class="input-group">
                 <label>Коэффициент на П2:</label>
-                <input type="text" class="custom-input" id="odds-p2" placeholder="2.10" readonly>
+                <input type="text" class="custom-input" id="odds-p2" placeholder="2.10" inputmode="none">
             </div>
             
             <h3 style="margin-top: 20px;">Дополнительные рынки</h3>
@@ -181,19 +177,19 @@
             <div class="odds-grid">
                 <div class="odds-card">
                     <div class="odds-label">Тотал >18.5</div>
-                    <input type="text" class="custom-input" id="total-over" placeholder="1.90" style="text-align: center;" readonly>
+                    <input type="text" class="custom-input" id="total-over" placeholder="1.90" style="text-align: center;" inputmode="none">
                 </div>
                 <div class="odds-card">
                     <div class="odds-label">Тотал <18.5</div>
-                    <input type="text" class="custom-input" id="total-under" placeholder="1.90" style="text-align: center;" readonly>
+                    <input type="text" class="custom-input" id="total-under" placeholder="1.90" style="text-align: center;" inputmode="none">
                 </div>
                 <div class="odds-card">
                     <div class="odds-label">Фора П1 (-1.5)</div>
-                    <input type="text" class="custom-input" id="handicap-p1" placeholder="2.25" style="text-align: center;" readonly>
+                    <input type="text" class="custom-input" id="handicap-p1" placeholder="2.25" style="text-align: center;" inputmode="none">
                 </div>
                 <div class="odds-card">
                     <div class="odds-label">Фора П2 (+1.5)</div>
-                    <input type="text" class="custom-input" id="handicap-p2" placeholder="1.65" style="text-align: center;" readonly>
+                    <input type="text" class="custom-input" id="handicap-p2" placeholder="1.65" style="text-align: center;" inputmode="none">
                 </div>
             </div>
             
@@ -242,21 +238,22 @@
         
         inputs.forEach(input => {
             input.addEventListener('focus', function(e) {
-                e.preventDefault(); // Предотвращаем появление системной клавиатуры
+                // Предотвращаем появление системной клавиатуры
+                e.preventDefault();
+                this.blur(); // Убираем фокус, чтобы клавиатура не появлялась
+                
                 if (activeInput) {
                     activeInput.classList.remove('active-input');
                 }
                 activeInput = this;
                 this.classList.add('active-input');
                 document.getElementById('keyboard').style.display = 'grid';
-                
-                // Прокручиваем к клавиатуре, если нужно
-                document.getElementById('keyboard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
             
-            // Также предотвращаем появление клавиатуры при долгом нажатии
-            input.addEventListener('touchstart', function(e) {
+            // Обработка кликов
+            input.addEventListener('click', function(e) {
                 e.preventDefault();
+                this.focus();
             });
         });
         
@@ -279,6 +276,17 @@
                     activeInput.value += keyValue;
                 }
             });
+        });
+        
+        // Закрытие клавиатуры при клике вне элементов
+        document.addEventListener('click', function(e) {
+            if (!e.target.classList.contains('custom-input') && 
+                !e.target.classList.contains('key') && 
+                activeInput) {
+                activeInput.classList.remove('active-input');
+                activeInput = null;
+                document.getElementById('keyboard').style.display = 'none';
+            }
         });
         
         // Алгоритм анализа
