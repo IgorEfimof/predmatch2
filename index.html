@@ -16,6 +16,9 @@
             padding: 0;
             background: var(--bg);
             color: var(--text);
+            -webkit-touch-callout: none; /* iOS Safari */
+            -webkit-user-select: none; /* Safari */
+            user-select: none; /* Стандартный синтаксис */
         }
         .container {
             max-width: 600px;
@@ -66,6 +69,14 @@
             border-radius: 6px;
             font-size: 16px;
             background: #f9f9f9;
+        }
+        .custom-input[readonly] {
+            cursor: default;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .custom-input[readonly]:focus {
+            outline: none;
         }
         .odds-grid {
             display: grid;
@@ -127,6 +138,7 @@
             font-size: 18px;
             text-align: center;
             cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
         .key-enter {
             background: var(--primary);
@@ -157,11 +169,11 @@
         <div class="input-section">
             <div class="input-group">
                 <label>Коэффициент на П1:</label>
-                <input type="text" class="custom-input" id="odds-p1" placeholder="1.75">
+                <input type="text" class="custom-input" id="odds-p1" placeholder="1.75" readonly>
             </div>
             <div class="input-group">
                 <label>Коэффициент на П2:</label>
-                <input type="text" class="custom-input" id="odds-p2" placeholder="2.10">
+                <input type="text" class="custom-input" id="odds-p2" placeholder="2.10" readonly>
             </div>
             
             <h3 style="margin-top: 20px;">Дополнительные рынки</h3>
@@ -169,19 +181,19 @@
             <div class="odds-grid">
                 <div class="odds-card">
                     <div class="odds-label">Тотал >18.5</div>
-                    <input type="text" class="custom-input" id="total-over" placeholder="1.90" style="text-align: center;">
+                    <input type="text" class="custom-input" id="total-over" placeholder="1.90" style="text-align: center;" readonly>
                 </div>
                 <div class="odds-card">
                     <div class="odds-label">Тотал <18.5</div>
-                    <input type="text" class="custom-input" id="total-under" placeholder="1.90" style="text-align: center;">
+                    <input type="text" class="custom-input" id="total-under" placeholder="1.90" style="text-align: center;" readonly>
                 </div>
                 <div class="odds-card">
                     <div class="odds-label">Фора П1 (-1.5)</div>
-                    <input type="text" class="custom-input" id="handicap-p1" placeholder="2.25" style="text-align: center;">
+                    <input type="text" class="custom-input" id="handicap-p1" placeholder="2.25" style="text-align: center;" readonly>
                 </div>
                 <div class="odds-card">
                     <div class="odds-label">Фора П2 (+1.5)</div>
-                    <input type="text" class="custom-input" id="handicap-p2" placeholder="1.65" style="text-align: center;">
+                    <input type="text" class="custom-input" id="handicap-p2" placeholder="1.65" style="text-align: center;" readonly>
                 </div>
             </div>
             
@@ -229,13 +241,22 @@
         let activeInput = null;
         
         inputs.forEach(input => {
-            input.addEventListener('focus', function() {
+            input.addEventListener('focus', function(e) {
+                e.preventDefault(); // Предотвращаем появление системной клавиатуры
                 if (activeInput) {
                     activeInput.classList.remove('active-input');
                 }
                 activeInput = this;
                 this.classList.add('active-input');
                 document.getElementById('keyboard').style.display = 'grid';
+                
+                // Прокручиваем к клавиатуре, если нужно
+                document.getElementById('keyboard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+            
+            // Также предотвращаем появление клавиатуры при долгом нажатии
+            input.addEventListener('touchstart', function(e) {
+                e.preventDefault();
             });
         });
         
