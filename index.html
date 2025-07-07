@@ -11,6 +11,7 @@
             --bg: #f5f7fa;
             --card: #ffffff;
             --text: #2c3e50;
+            --highlight: #FFEB3B;
         }
         html {
             touch-action: manipulation;
@@ -108,7 +109,7 @@
         }
         .odds-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 8px;
             padding: 10px 0;
         }
@@ -119,6 +120,10 @@
             text-align: center;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             border: 1px solid #e0e0e0;
+        }
+        .odds-card.highlight {
+            background-color: var(--highlight);
+            border: 1px solid var(--primary);
         }
         .odds-label {
             font-size: 12px;
@@ -156,6 +161,10 @@
             padding: 6px;
             background: white;
             border-radius: 3px;
+        }
+        .best-odds {
+            font-weight: bold;
+            color: var(--primary);
         }
         .keyboard {
             display: none;
@@ -216,20 +225,40 @@
             
             <div class="odds-grid">
                 <div class="odds-card">
+                    <div class="odds-label">Тотал >17.5</div>
+                    <input type="text" class="custom-input" id="total-over-17.5" placeholder="1.80" style="text-align: center;" inputmode="none">
+                </div>
+                <div class="odds-card">
+                    <div class="odds-label">Тотал <17.5</div>
+                    <input type="text" class="custom-input" id="total-under-17.5" placeholder="2.00" style="text-align: center;" inputmode="none">
+                </div>
+                <div class="odds-card">
                     <div class="odds-label">Тотал >18.5</div>
-                    <input type="text" class="custom-input" id="total-over" placeholder="1.90" style="text-align: center;" inputmode="none">
+                    <input type="text" class="custom-input" id="total-over-18.5" placeholder="1.90" style="text-align: center;" inputmode="none">
                 </div>
                 <div class="odds-card">
                     <div class="odds-label">Тотал <18.5</div>
-                    <input type="text" class="custom-input" id="total-under" placeholder="1.90" style="text-align: center;" inputmode="none">
+                    <input type="text" class="custom-input" id="total-under-18.5" placeholder="1.90" style="text-align: center;" inputmode="none">
+                </div>
+                <div class="odds-card">
+                    <div class="odds-label">Тотал >19.5</div>
+                    <input type="text" class="custom-input" id="total-over-19.5" placeholder="2.10" style="text-align: center;" inputmode="none">
+                </div>
+                <div class="odds-card">
+                    <div class="odds-label">Тотал <19.5</div>
+                    <input type="text" class="custom-input" id="total-under-19.5" placeholder="1.75" style="text-align: center;" inputmode="none">
+                </div>
+                <div class="odds-card">
+                    <div class="odds-label">Тотал >20.5</div>
+                    <input type="text" class="custom-input" id="total-over-20.5" placeholder="2.30" style="text-align: center;" inputmode="none">
+                </div>
+                <div class="odds-card">
+                    <div class="odds-label">Тотал <20.5</div>
+                    <input type="text" class="custom-input" id="total-under-20.5" placeholder="1.65" style="text-align: center;" inputmode="none">
                 </div>
                 <div class="odds-card">
                     <div class="odds-label">Фора П1 (-1.5)</div>
                     <input type="text" class="custom-input" id="handicap-p1" placeholder="2.25" style="text-align: center;" inputmode="none">
-                </div>
-                <div class="odds-card">
-                    <div class="odds-label">Фора П2 (+1.5)</div>
-                    <input type="text" class="custom-input" id="handicap-p2" placeholder="1.65" style="text-align: center;" inputmode="none">
                 </div>
             </div>
             
@@ -241,16 +270,19 @@
             <div class="results" id="results" style="display: none;">
                 <h3>Результаты анализа</h3>
                 <div class="result-item">
-                    <strong>Маржа букмекера:</strong> <span id="bookmaker-margin">5.8%</span>
+                    <strong>Маржа букмекера (П1/П2):</strong> <span id="bookmaker-margin">-</span>
                 </div>
                 <div class="result-item">
-                    <strong>Value ставка:</strong> <span id="value-bet">П2 (Value 1.12)</span>
+                    <strong>Лучший тотал (по марже):</strong> <span id="best-total">-</span>
                 </div>
                 <div class="result-item">
-                    <strong>Рекомендуемый рынок:</strong> <span id="recommended-market">Тотал >18.5</span>
+                    <strong>Наибольший коэффициент (>2.0):</strong> <span id="best-high-odd">-</span>
                 </div>
                 <div class="result-item">
-                    <strong>Ожидаемая ROI:</strong> <span id="expected-roi">+7.4%</span>
+                    <strong>Рекомендация:</strong> <span id="recommendation">-</span>
+                </div>
+                <div class="result-item">
+                    <strong>Анализ расхождений:</strong> <span id="discrepancy-analysis">-</span>
                 </div>
             </div>
         </div>
@@ -338,29 +370,94 @@
             }
         });
         
-        // Алгоритм анализа
+        // Реальный расчет всех показателей
         document.getElementById('calculate-btn').addEventListener('click', function() {
+            // Получаем все коэффициенты
             const oddsP1 = parseFloat(document.getElementById('odds-p1').value) || 0;
             const oddsP2 = parseFloat(document.getElementById('odds-p2').value) || 0;
             
+            // Собираем все тоталы в массив
+            const totals = [
+                { name: ">17.5", over: parseFloat(document.getElementById('total-over-17.5').value) || 0, under: parseFloat(document.getElementById('total-under-17.5').value) || 0 },
+                { name: ">18.5", over: parseFloat(document.getElementById('total-over-18.5').value) || 0, under: parseFloat(document.getElementById('total-under-18.5').value) || 0 },
+                { name: ">19.5", over: parseFloat(document.getElementById('total-over-19.5').value) || 0, under: parseFloat(document.getElementById('total-under-19.5').value) || 0 },
+                { name: ">20.5", over: parseFloat(document.getElementById('total-over-20.5').value) || 0, under: parseFloat(document.getElementById('total-under-20.5').value) || 0 }
+            ];
+
+            const handicapP1 = parseFloat(document.getElementById('handicap-p1').value) || 0;
+
             if (oddsP1 === 0 || oddsP2 === 0) {
                 alert("Введите коэффициенты на обоих игроков!");
                 return;
             }
+
+            // 1. Расчет маржи для всех рынков
+            const calculateMargin = (k1, k2) => k1 > 0 && k2 > 0 ? ((1/k1 + 1/k2) - 1) * 100 : Infinity;
             
-            const margin = ((1 / oddsP1 + 1 / oddsP2) - 1) * 100;
+            const marginMain = calculateMargin(oddsP1, oddsP2).toFixed(1);
             
-            let valueBet = "";
-            if (oddsP1 < oddsP2) {
-                const value = (1 / oddsP1) / (1 / oddsP1 + 1 / oddsP2);
-                valueBet = `П1 (Value ${(value * 1.1).toFixed(2)})`;
+            // Анализ тоталов
+            totals.forEach(total => {
+                total.margin = calculateMargin(total.over, total.under).toFixed(1);
+                total.valueOver = (1 / total.over) / ((1 / total.over) + (1 / total.under));
+                total.valueUnder = (1 / total.under) / ((1 / total.over) + (1 / total.under));
+            });
+
+            // 2. Поиск лучших коэффициентов (>2.0)
+            const allOdds = totals.flatMap(total => [
+                { type: `Тотал ${total.name} (>)`, value: total.over },
+                { type: `Тотал ${total.name} (<)`, value: total.under }
+            ]).filter(odd => odd.value >= 2.0);
+
+            const bestHighOdd = allOdds.reduce((max, curr) => 
+                curr.value > max.value ? curr : max, { value: 0 });
+
+            // 3. Находим тотал с наименьшей маржой
+            const bestTotal = totals.reduce((min, curr) => 
+                parseFloat(curr.margin) < parseFloat(min.margin) ? curr : min);
+
+            // 4. Анализ расхождений
+            let discrepancyAnalysis = "";
+            const avgOver = totals.reduce((sum, total) => sum + total.over, 0) / totals.length;
+            const avgUnder = totals.reduce((sum, total) => sum + total.under, 0) / totals.length;
+            
+            totals.forEach(total => {
+                if (total.over > avgOver * 1.15) {
+                    discrepancyAnalysis += `Тотал ${total.name} (>) завышен | `;
+                }
+                if (total.under > avgUnder * 1.15) {
+                    discrepancyAnalysis += `Тотал ${total.name} (<) завышен | `;
+                }
+            });
+
+            // 5. Формируем рекомендации
+            let recommendation = "";
+            if (bestHighOdd.value > 0) {
+                recommendation = `Стоит рассмотреть ${bestHighOdd.type} с коэффициентом ${bestHighOdd.value.toFixed(2)}`;
             } else {
-                const value = (1 / oddsP2) / (1 / oddsP1 + 1 / oddsP2);
-                valueBet = `П2 (Value ${(value * 1.1).toFixed(2)})`;
+                recommendation = "Высоких коэффициентов (>2.0) не найдено";
             }
+
+            // 6. Подсветка лучших вариантов
+            document.querySelectorAll('.odds-card').forEach(card => card.classList.remove('highlight'));
             
-            document.getElementById('bookmaker-margin').textContent = margin.toFixed(1) + '%';
-            document.getElementById('value-bet').textContent = valueBet;
+            if (bestHighOdd.value > 0) {
+                const bestOddId = bestHighOdd.type.includes('(>)') ? 
+                    `total-over-${bestHighOdd.type.match(/\d+\.\d+/)[0]}` : 
+                    `total-under-${bestHighOdd.type.match(/\d+\.\d+/)[0]}`;
+                document.getElementById(bestOddId).parentElement.classList.add('highlight');
+            }
+
+            // 7. Обновление результатов
+            document.getElementById('bookmaker-margin').textContent = marginMain + '%';
+            document.getElementById('best-total').textContent = 
+                `Тотал ${bestTotal.name} (маржа ${bestTotal.margin}%)`;
+            document.getElementById('best-high-odd').textContent = 
+                bestHighOdd.value > 0 ? `${bestHighOdd.type} @ ${bestHighOdd.value.toFixed(2)}` : "Не найдено";
+            document.getElementById('recommendation').textContent = recommendation;
+            document.getElementById('discrepancy-analysis').textContent = 
+                discrepancyAnalysis || "Значительных расхождений не обнаружено";
+
             document.getElementById('results').style.display = 'block';
         });
 
@@ -373,6 +470,7 @@
         document.getElementById('reset-btn').addEventListener('click', function() {
             inputs.forEach(input => input.value = '');
             document.getElementById('results').style.display = 'none';
+            document.querySelectorAll('.odds-card').forEach(card => card.classList.remove('highlight'));
             if (activeInput) {
                 activeInput.classList.remove('active-input');
                 activeInput = null;
