@@ -19,11 +19,13 @@
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
+            height: 100vh;
+            overflow: hidden;
         }
         .container {
             max-width: 600px;
             margin: 0 auto;
-            height: 100vh;
+            height: 100%;
             display: flex;
             flex-direction: column;
             background: var(--card);
@@ -32,44 +34,48 @@
         .header {
             background: var(--primary);
             color: white;
-            padding: 15px;
+            padding: 8px 15px;
             text-align: center;
             font-weight: 600;
-            font-size: 18px;
+            font-size: 16px;
         }
         .match-header {
             background: var(--secondary);
             color: white;
-            padding: 12px;
+            padding: 8px 12px;
             display: flex;
             justify-content: space-between;
-            font-size: 16px;
+            font-size: 14px;
         }
         .match-details {
             background: #FFCDD2;
-            padding: 10px;
+            padding: 6px 10px;
             text-align: center;
-            font-size: 14px;
+            font-size: 12px;
         }
         .input-section {
-            padding: 15px;
+            padding: 10px;
+            flex: 1;
+            overflow-y: auto;
         }
         .input-group {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
         .input-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
             font-weight: 500;
+            font-size: 14px;
         }
         .custom-input {
             width: 100%;
-            padding: 12px;
+            padding: 8px 12px;
             border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
+            border-radius: 4px;
+            font-size: 14px;
             background: #f9f9f9;
-            caret-color: transparent; /* Скрываем курсор */
+            caret-color: transparent;
+            box-sizing: border-box;
         }
         .custom-input:focus {
             outline: none;
@@ -79,63 +85,60 @@
         .odds-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            padding: 15px;
+            gap: 8px;
+            padding: 10px 0;
         }
         .odds-card {
             background: var(--card);
-            border-radius: 8px;
-            padding: 12px;
+            border-radius: 6px;
+            padding: 8px;
             text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             border: 1px solid #e0e0e0;
         }
-        .odds-value {
-            font-size: 18px;
-            font-weight: 700;
-            margin: 5px 0;
-            color: var(--primary);
+        .odds-label {
+            font-size: 12px;
+            margin-bottom: 4px;
         }
         .btn {
             background: var(--primary);
             color: white;
             border: none;
-            padding: 14px;
-            border-radius: 6px;
+            padding: 10px;
+            border-radius: 4px;
             width: 100%;
-            font-size: 16px;
-            margin-top: 10px;
+            font-size: 14px;
+            margin-top: 8px;
             cursor: pointer;
         }
         .results {
             background: #FFEBEE;
-            margin: 15px;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid var(--primary);
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid var(--primary);
+            font-size: 13px;
         }
         .result-item {
-            margin-bottom: 10px;
-            padding: 8px;
+            margin-bottom: 6px;
+            padding: 6px;
             background: white;
-            border-radius: 4px;
+            border-radius: 3px;
         }
         .keyboard {
             display: none;
             grid-template-columns: repeat(4, 1fr);
-            gap: 5px;
-            padding: 10px;
+            gap: 4px;
+            padding: 8px;
             background: #f5f5f5;
             border-top: 1px solid #ddd;
-            position: sticky;
-            bottom: 0;
         }
         .key {
             background: white;
             border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 15px;
-            font-size: 18px;
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 14px;
             text-align: center;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
@@ -144,6 +147,10 @@
             background: var(--primary);
             color: white;
             grid-column: span 2;
+        }
+        h3 {
+            font-size: 14px;
+            margin: 8px 0;
         }
     </style>
 </head>
@@ -172,7 +179,7 @@
                 <input type="text" class="custom-input" id="odds-p2" placeholder="2.10" inputmode="none">
             </div>
             
-            <h3 style="margin-top: 20px;">Дополнительные рынки</h3>
+            <h3>Дополнительные рынки</h3>
             
             <div class="odds-grid">
                 <div class="odds-card">
@@ -193,22 +200,22 @@
                 </div>
             </div>
             
-            <button class="btn" id="calculate-btn">Анализировать коэффициенты</button>
-        </div>
-        
-        <div class="results" id="results" style="display: none;">
-            <h3>Результаты анализа</h3>
-            <div class="result-item">
-                <strong>Маржа букмекера:</strong> <span id="bookmaker-margin">5.8%</span>
-            </div>
-            <div class="result-item">
-                <strong>Value ставка:</strong> <span id="value-bet">П2 (Value 1.12)</span>
-            </div>
-            <div class="result-item">
-                <strong>Рекомендуемый рынок:</strong> <span id="recommended-market">Тотал >18.5</span>
-            </div>
-            <div class="result-item">
-                <strong>Ожидаемая ROI:</strong> <span id="expected-roi">+7.4%</span>
+            <button class="btn" id="calculate-btn">Анализировать</button>
+            
+            <div class="results" id="results" style="display: none;">
+                <h3>Результаты анализа</h3>
+                <div class="result-item">
+                    <strong>Маржа букмекера:</strong> <span id="bookmaker-margin">5.8%</span>
+                </div>
+                <div class="result-item">
+                    <strong>Value ставка:</strong> <span id="value-bet">П2 (Value 1.12)</span>
+                </div>
+                <div class="result-item">
+                    <strong>Рекомендуемый рынок:</strong> <span id="recommended-market">Тотал >18.5</span>
+                </div>
+                <div class="result-item">
+                    <strong>Ожидаемая ROI:</strong> <span id="expected-roi">+7.4%</span>
+                </div>
             </div>
         </div>
         
@@ -238,9 +245,8 @@
         
         inputs.forEach(input => {
             input.addEventListener('focus', function(e) {
-                // Предотвращаем появление системной клавиатуры
                 e.preventDefault();
-                this.blur(); // Убираем фокус, чтобы клавиатура не появлялась
+                this.blur();
                 
                 if (activeInput) {
                     activeInput.classList.remove('active-input');
@@ -250,7 +256,6 @@
                 document.getElementById('keyboard').style.display = 'grid';
             });
             
-            // Обработка кликов
             input.addEventListener('click', function(e) {
                 e.preventDefault();
                 this.focus();
@@ -278,7 +283,6 @@
             });
         });
         
-        // Закрытие клавиатуры при клике вне элементов
         document.addEventListener('click', function(e) {
             if (!e.target.classList.contains('custom-input') && 
                 !e.target.classList.contains('key') && 
@@ -299,10 +303,8 @@
                 return;
             }
             
-            // Расчет маржи
             const margin = ((1 / oddsP1 + 1 / oddsP2) - 1) * 100;
             
-            // Определение value ставки
             let valueBet = "";
             if (oddsP1 < oddsP2) {
                 const value = (1 / oddsP1) / (1 / oddsP1 + 1 / oddsP2);
@@ -312,13 +314,9 @@
                 valueBet = `П2 (Value ${(value * 1.1).toFixed(2)})`;
             }
             
-            // Обновление результатов
             document.getElementById('bookmaker-margin').textContent = margin.toFixed(1) + '%';
             document.getElementById('value-bet').textContent = valueBet;
             document.getElementById('results').style.display = 'block';
-            
-            // Прокрутка к результатам
-            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
         });
     </script>
 </body>
