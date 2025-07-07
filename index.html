@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pro Table Tennis Analyzer</title>
+    <style>
+        :root {
+            --primary: #E53935;
+            --secondary: #C62828;
+            --accent: #FF5252;
+            --bg: #FAFAFA;
+            --card: #FFFFFF;
+            --text: #212121;
+            --border: #E0E0E0;
+            --success: #4CAF50;
+            --warning: #FFC107;
+            --error: #F44336;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        #app {
+            max-width: 600px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--card);
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 18px 15px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 20px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-actions {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 12px;
+        }
+        
+        /* Match Info Section */
+        .match-container {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 15px;
+        }
+        
+        .players-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .player {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 500;
+            text-align: center;
+            padding: 0 10px;
+        }
+        
+        .vs {
+            font-size: 14px;
+            color: #757575;
+            padding: 0 8px;
+        }
+        
+        .match-meta {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            color: #616161;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+        
+        /* Main Content Tabs */
+        .tabs {
+            display: flex;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 14px 5px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #757575;
+            position: relative;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: var(--primary);
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50%;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 3px 3px 0 0;
+        }
+        
+        /* Odds Input Section */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin: 20px 0 12px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+        }
+        
+        .odds-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .odds-card {
+            background: var(--card);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+        
+        .odds-card:active {
+            transform: scale(0.98);
+        }
+        
+        .odds-label {
+            font-size: 13px;
+            color: #757575;
+            margin-bottom: 5px;
+        }
+        
+        .odds-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+        }
+        
+        /* Calculator Section */
+        .calculator {
+            background: var(--card);
+            border-radius: 10px;
+            padding: 18px;
+            margin: 20px 0;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            border: 1px solid var(--border);
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .custom-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 16px;
+            background: #FAFAFA;
+            -webkit-appearance: none;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 6px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 10px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        /* Results Section */
+        .results {
+            background: #F5F5F5;
+            border-radius: 10px;
+            padding: 18px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #E0E0E0;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .result-label {
+            font-weight: 500;
+            color: #616161;
+        }
+        
+        .result-value {
+            font-weight: 600;
+            text-align: right;
+        }
+        
+        .positive {
+            color: var(--success);
+        }
+        
+        .negative {
+            color: var(--error);
+        }
+        
+        /* Custom Keyboard */
+        .keyboard-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #ECEFF1;
+            padding: 10px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+            z-index: 100;
+        }
+        
+        .keyboard-container.visible {
+            transform: translateY(0);
+        }
+        
+        .keyboard-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .key {
+            flex: 1;
+            background: white;
+            border: none;
+            border-radius: 5px;
+            padding: 15px 0;
+            margin: 0 3px;
+            font-size: 18px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        
+        .key:active {
+            background: #E0E0E0;
+            transform: scale(0.95);
+        }
+        
+        .key-wide {
+            flex: 2;
+        }
+        
+        .key-enter {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 400px) {
+            .player {
+                font-size: 16px;
+            }
+            
+            .odds-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <div class="header">
+            TT Odds Master
+            <div class="header-actions">
+                <span>📊</span>
+                <span>⚙️</span>
+            </div>
+        </div>
+        
+        <!-- Match Info -->
+        <div class="match-container">
+            <div class="players-row">
+                <div class="player" id="player1">Александр Дехтяренко</div>
+                <div class="vs">vs</div>
+                <div class="player" id="player2">Константин Атоманчик</div>
+            </div>
+            <div class="match-meta">
+                <span>5 сетов</span>
+                <span>•</span>
+                <span>07.07.2023</span>
+            </div>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active">Основные</div>
+            <div class="tab">Форы</div>
+            <div class="tab">Статистика</div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="content">
+            <h3 class="section-title">Исходы по партиям</h3>
+            <div class="odds-grid">
+                <div class="odds-card" data-target="odds-p1">
+                    <div class="odds-label">Победа П1</div>
+                    <div class="odds-value" id="odds-p1">2.05</div>
+                </div>
+                <div class="odds-card" data-target="odds-p2">
+                    <div class="odds-label">Победа П2</div>
+                    <div class="odds-value" id="odds-p2">1.69</div>
+                </div>
+            </div>
+            
+            <h3 class="section-title">Тоталы по партиям</h3>
+            <div class="odds-grid">
+                <div class="odds-card" data-target="total-under-16">
+                    <div class="odds-label">ТМ (16.5)</div>
+                    <div class="odds-value" id="total-under-16">3.50</div>
+                </div>
+                <div class="odds-card" data-target="total-over-16">
+                    <div class="odds-label">ТБ (16.5)</div>
+                    <div class="odds-value" id="total-over-16">1.26</div>
+                </div>
+                <div class="odds-card" data-target="total-under-17">
+                    <div class="odds-label">ТМ (17.5)</div>
+                    <div class="odds-value" id="total-under-17">2.45</div>
+                </div>
+                <div class="odds-card" data-target="total-over-17">
+                    <div class="odds-label">ТБ (17.5)</div>
+                    <div class="odds-value" id="total-over-17">1.49</div>
+                </div>
+            </div>
+            
+            <div class="calculator">
+                <h3 class="section-title">Анализ Value Bet</h3>
+                <div class="input-group">
+                    <label class="input-label">Коэффициент букмекера:</label>
+                    <input type="text" class="custom-input" id="bookmaker-odds" placeholder="2.10" readonly>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Ваша оценка вероятности (%):</label>
+                    <input type="text" class="custom-input" id="probability-input" placeholder="55" readonly>
+                </div>
+                <button class="btn" id="calculate-btn">Рассчитать Value</button>
+            </div>
+            
+            <div class="results" id="results">
+                <h3 class="section-title">Результаты анализа</h3>
+                <div class="result-item">
+                    <span class="result-label">Маржа букмекера:</span>
+                    <span class="result-value" id="margin-value">5.8%</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Value Index:</span>
+                    <span class="result-value positive" id="value-index">1.15</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Рекомендуемая ставка:</span>
+                    <span class="result-value" id="recommendation">П1 (2.10)</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Ожидаемая ROI:</span>
+                    <span class="result-value positive" id="expected-roi">+7.4%</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Точность прогноза:</span>
+                    <span class="result-value" id="accuracy-rate">68.3%</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Custom Keyboard -->
+        <div class="keyboard-container" id="keyboard">
+            <div class="keyboard-row">
+                <button class="key" data-value="1">1</button>
+                <button class="key" data-value="2">2</button>
+                <button class="key" data-value="3">3</button>
+                <button class="key" data-value="backspace">⌫</button>
+            </div>
+            <div class="keyboard-row">
+                <button class="key" data-value="4">4</button>
+                <button class="key" data-value="5">5</button>
+                <button class="key" data-value="6">6</button>
+                <button class="key" data-value="clear">Очистить</button>
+            </div>
+            <div class="keyboard-row">
+                <button class="key" data-value="7">7</button>
+                <button class="key" data-value="8">8</button>
+                <button class="key" data-value="9">9</button>
+                <button class="key" data-value=".">.</button>
+            </div>
+            <div class="keyboard-row">
+                <button class="key" data-value="0">0</button>
+                <button class="key key-wide" data-value="-" style="flex: 2;">-</button>
+                <button class="key key-enter" data-value="enter">Готово</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Полное отключение системной клавиатуры
+        document.addEventListener('touchstart', function(e) {
+            const interactiveElements = ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'];
+            if (interactiveElements.includes(e.target.tagName)) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        // Система активного ввода
+        let activeInput = null;
+        const inputFields = document.querySelectorAll('.custom-input, .odds-value');
+        const oddsCards = document.querySelectorAll('.odds-card');
+        
+        function setActiveInput(element) {
+            if (activeInput) {
+                activeInput.classList.remove('active-input');
+            }
+            activeInput = element;
+            element.classList.add('active-input');
+            showKeyboard();
+        }
+        
+        // Обработчики для полей ввода
+        inputFields.forEach(input => {
+            input.addEventListener('focus', function() {
+                setActiveInput(this);
+            });
+            
+            input.addEventListener('click', function() {
+                setActiveInput(this);
+            });
+        });
+        
+        // Обработчики для карточек коэффициентов
+        oddsCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const targetInput = document.getElementById(targetId);
+                setActiveInput(targetInput);
+            });
+        });
+        
+        // Управление кастомной клавиатурой
+        const keyboard = document.getElementById('keyboard');
+        
+        function showKeyboard() {
+            keyboard.classList.add('visible');
+            // Прокрутка к активному полю
+            if (activeInput) {
+                activeInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+        
+        function hideKeyboard() {
+            keyboard.classList.remove('visible');
+            if (activeInput) {
+                activeInput.classList.remove('active-input');
+                activeInput = null;
+            }
+        }
+        
+        // Обработка нажатий клавиш
+        const keys = document.querySelectorAll('.key');
+        keys.forEach(key => {
+            key.addEventListener('click', function() {
+                if (!activeInput) return;
+                
+                const value = this.getAttribute('data-value');
+                const currentValue = activeInput.textContent || activeInput.value;
+                
+                switch(value) {
+                    case 'backspace':
+                        if (activeInput.classList.contains('odds-value')) {
+                            activeInput.textContent = currentValue.slice(0, -1);
+                        } else {
+                            activeInput.value = currentValue.slice(0, -1);
+                        }
+                        break;
+                        
+                    case 'clear':
+                        if (activeInput.classList.contains('odds-value')) {
+                            activeInput.textContent = '';
+                        } else {
+                            activeInput.value = '';
+                        }
+                        break;
+                        
+                    case 'enter':
+                        hideKeyboard();
+                        if (activeInput.id === 'probability-input' || activeInput.id === 'bookmaker-odds') {
+                            calculateValueBet();
+                        }
+                        break;
+                        
+                    default:
+                        if (activeInput.classList.contains('odds-value')) {
+                            activeInput.textContent += value;
+                        } else {
+                            activeInput.value += value;
+                        }
+                }
+            });
+        });
+        
+        // Расчет Value Bet
+        function calculateValueBet() {
+            const bookmakerOdds = parseFloat(document.getElementById('bookmaker-odds').value) || 0;
+            const probability = parseFloat(document.getElementById('probability-input').value) || 0;
+            
+            if (bookmakerOdds <= 1 || probability <= 0 || probability >= 100) {
+                alert('Введите корректные значения!');
+                return;
+            }
+            
+            // Расчет подразумеваемой вероятности
+            const impliedProbability = (1 / bookmakerOdds) * 100;
+            
+            // Расчет Value Index
+            const valueIndex = (probability / impliedProbability).toFixed(2);
+            
+            // Расчет ожидаемой доходности
+            const expectedProfit = ((bookmakerOdds * (probability/100) - 1) * 100;
+            
+            // Обновление UI
+            document.getElementById('value-index').textContent = valueIndex;
+            document.getElementById('margin-value').textContent = (100 - (impliedProbability * 100 / probability)).toFixed(1) + '%';
+            document.getElementById('expected-roi').textContent = expectedProfit > 0 ? `+${expectedProfit.toFixed(1)}%` : `${expectedProfit.toFixed(1)}%`;
+            document.getElementById('recommendation').textContent = valueIndex > 1 
+                ? `${document.getElementById('player1').textContent} (${bookmakerOdds})` 
+                : 'Нет Value';
+            
+            // Визуальные индикаторы
+            document.getElementById('value-index').className = valueIndex > 1 ? 'result-value positive' : 'result-value negative';
+            document.getElementById('expected-roi').className = expectedProfit > 0 ? 'result-value positive' : 'result-value negative';
+            
+            // Показ результатов
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Инициализация
+        document.getElementById('calculate-btn').addEventListener('click', calculateValueBet);
+        
+        // Скрытие клавиатуры при клике вне элементов
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.custom-input, .odds-card, .odds-value, .key, #keyboard')) {
+                hideKeyboard();
+            }
+        });
+    </script>
+</body>
+</html>
