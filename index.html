@@ -378,6 +378,16 @@
         const inputs = document.querySelectorAll('.custom-input');
         let activeInput = null;
         
+        // Порядок полей для автоматического перехода
+        const inputOrder = [
+            'odds-p1', 'odds-p2',
+            'total-over-17.5', 'total-under-17.5',
+            'total-over-18.5', 'total-under-18.5',
+            'total-over-19.5', 'total-under-19.5',
+            'total-over-20.5', 'total-under-20.5',
+            'handicap-p1', 'handicap-p2'
+        ];
+        
         inputs.forEach(input => {
             input.addEventListener('focus', function(e) {
                 e.preventDefault();
@@ -394,33 +404,57 @@
             });
         });
 
+        // Функция для перехода к следующему полю
+        function moveToNextInput() {
+            if (!activeInput) return;
+            
+            const currentId = activeInput.id;
+            const currentIndex = inputOrder.indexOf(currentId);
+            
+            if (currentIndex !== -1 && currentIndex < inputOrder.length - 1) {
+                const nextInput = document.getElementById(inputOrder[currentIndex + 1]);
+                if (nextInput) {
+                    nextInput.focus();
+                    setTimeout(() => {
+                        nextInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                }
+            }
+        }
+
         // Кастомная клавиатура
         document.querySelectorAll('.key').forEach(key => {
-    key.addEventListener('click', () => {
-        if (!activeInput) return;
-        const action = key.textContent;
+            key.addEventListener('click', () => {
+                if (!activeInput) return;
+                const action = key.textContent;
 
-        if (action === '⌫') {
-            activeInput.value = activeInput.value.slice(0, -1);
-            return;
-        }
+                if (action === '⌫') {
+                    activeInput.value = activeInput.value.slice(0, -1);
+                    return;
+                }
 
-        // Если поле пустое и нажата цифра
-        if (/^\d$/.test(action) && activeInput.value.length === 0) {
-            activeInput.value = action + '.';
-            // Ставим курсор после точки (если нужно)
-            if (activeInput.setSelectionRange) {
-                activeInput.setSelectionRange(2, 2);
-            }
-            return;
-        }
+                // Если поле пустое и нажата цифра
+                if (/^\d$/.test(action) && activeInput.value.length === 0) {
+                    activeInput.value = action + '.';
+                    // Ставим курсор после точки (если нужно)
+                    if (activeInput.setSelectionRange) {
+                        activeInput.setSelectionRange(2, 2);
+                    }
+                    return;
+                }
 
-        // Не даём ввести вторую точку
-        if (action === '.' && activeInput.value.includes('.')) return;
+                // Не даём ввести вторую точку
+                if (action === '.' && activeInput.value.includes('.')) return;
 
-        activeInput.value += action;
-    });
-});
+                // Добавляем символ
+                activeInput.value += action;
+                
+                // Автоматический переход после ввода 4 символов (например: 1.85)
+                if (activeInput.value.length >= 4) {
+                    setTimeout(moveToNextInput, 50);
+                }
+            });
+        });
 
         // Кнопка "Готово"
         document.getElementById('done-btn').addEventListener('click', function() {
