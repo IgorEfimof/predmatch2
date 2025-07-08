@@ -396,17 +396,31 @@
 
         // Кастомная клавиатура
         document.querySelectorAll('.key').forEach(key => {
-            key.addEventListener('click', () => {
-                if (!activeInput) return;
-                const action = key.textContent;
-                
-                if (action === '⌫') {
-                    activeInput.value = activeInput.value.slice(0, -1);
-                } else {
-                    activeInput.value += action;
-                }
-            });
-        });
+    key.addEventListener('click', () => {
+        if (!activeInput) return;
+        const action = key.textContent;
+
+        if (action === '⌫') {
+            activeInput.value = activeInput.value.slice(0, -1);
+            return;
+        }
+
+        // Если поле пустое и нажата цифра
+        if (/^\d$/.test(action) && activeInput.value.length === 0) {
+            activeInput.value = action + '.';
+            // Ставим курсор после точки (если нужно)
+            if (activeInput.setSelectionRange) {
+                activeInput.setSelectionRange(2, 2);
+            }
+            return;
+        }
+
+        // Не даём ввести вторую точку
+        if (action === '.' && activeInput.value.includes('.')) return;
+
+        activeInput.value += action;
+    });
+});
 
         // Кнопка "Готово"
         document.getElementById('done-btn').addEventListener('click', function() {
