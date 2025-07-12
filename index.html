@@ -304,28 +304,28 @@
             <div class="section-title">Тоталы матча</div>
             <div class="markets-container">
                 <div class="markets-grid">
-                    <div class="market-card" id="total-17.5">
-                        <div class="market-name">Тотал 17.5</div>
-                        <input type="text" class="custom-input" id="total-over-17.5" placeholder="1.80" inputmode="none">
-                        <input type="text" class="custom-input" id="total-under-17.5" placeholder="2.00" inputmode="none">
+                    <div class="market-card" id="total-7.5">
+                        <div class="market-name">Тотал 7.5</div>
+                        <input type="text" class="custom-input" id="total-over-7.5" placeholder="1.80" inputmode="none">
+                        <input type="text" class="custom-input" id="total-under-7.5" placeholder="2.00" inputmode="none">
                     </div>
-                    <div class="market-card" id="total-18.5">
-                        <div class="market-name">Тотал 18.5</div>
-                        <input type="text" class="custom-input" id="total-over-18.5" placeholder="1.90" inputmode="none">
-                        <input type="text" class="custom-input" id="total-under-18.5" placeholder="1.90" inputmode="none">
+                    <div class="market-card" id="total-8.5">
+                        <div class="market-name">Тотал 8.5</div>
+                        <input type="text" class="custom-input" id="total-over-8.5" placeholder="1.90" inputmode="none">
+                        <input type="text" class="custom-input" id="total-under-8.5" placeholder="1.90" inputmode="none">
                     </div>
                 </div>
                 
                 <div class="markets-grid">
-                    <div class="market-card" id="total-19.5">
-                        <div class="market-name">Тотал 19.5</div>
-                        <input type="text" class="custom-input" id="total-over-19.5" placeholder="2.10" inputmode="none">
-                        <input type="text" class="custom-input" id="total-under-19.5" placeholder="1.75" inputmode="none">
+                    <div class="market-card" id="total-9.5">
+                        <div class="market-name">Тотал 9.5</div>
+                        <input type="text" class="custom-input" id="total-over-9.5" placeholder="2.10" inputmode="none">
+                        <input type="text" class="custom-input" id="total-under-9.5" placeholder="1.75" inputmode="none">
                     </div>
-                    <div class="market-card" id="total-20.5">
-                        <div class="market-name">Тотал 20.5</div>
-                        <input type="text" class="custom-input" id="total-over-20.5" placeholder="2.30" inputmode="none">
-                        <input type="text" class="custom-input" id="total-under-20.5" placeholder="1.65" inputmode="none">
+                    <div class="market-card" id="total-10.5">
+                        <div class="market-name">Тотал 10.5</div>
+                        <input type="text" class="custom-input" id="total-over-10.5" placeholder="2.30" inputmode="none">
+                        <input type="text" class="custom-input" id="total-under-10.5" placeholder="1.65" inputmode="none">
                     </div>
                 </div>
             </div>
@@ -399,10 +399,10 @@
         // Порядок полей для автоматического перехода
         const inputOrder = [
             'odds-p1', 'odds-p2',
-            'total-over-17.5', 'total-under-17.5',
-            'total-over-18.5', 'total-under-18.5',
-            'total-over-19.5', 'total-under-19.5',
-            'total-over-20.5', 'total-under-20.5'
+            'total-over-7.5', 'total-under-7.5',
+            'total-over-8.5', 'total-under-8.5',
+            'total-over-9.5', 'total-under-9.5',
+            'total-over-10.5', 'total-under-10.5'
         ];
         
         inputs.forEach(input => {
@@ -503,58 +503,64 @@
             return 0.5 * (1.0 + sign * y);
         }
 
-        // Расчет ожидаемого тотала
+        // Расчет ожидаемого тотала (оптимизировано для TT)
         function calculateExpectedTotal(oddsP1, oddsP2) {
+            // Параметры для настольного тенниса
+            const stats = {
+                avgTotal: 8.5,     // Средний тотал в матчах до 4 сетов
+                stdDev: 1.5,       // Меньший разброс, чем в большом теннисе
+                p1Avg: 9.0,        // Если побеждает P1 (атакующий)
+                p2Avg: 8.0         // Если побеждает P2 (защитный)
+            };
+
+            // Учет стиля игроков (0-1, где 1 = агрессивный атакующий)
+            const playerStyles = {
+                p1: 0.7,  // Игрок 1 - атакующий
+                p2: 0.4   // Игрок 2 - защитный
+            };
+
             // 1. Рассчитываем вероятности победы игроков
             const margin = (1/oddsP1 + 1/oddsP2) - 1;
             const probP1 = (1/oddsP1) / (1 + margin);
             const probP2 = (1/oddsP2) / (1 + margin);
             
-            // 2. Исторические данные для тенниса до 4 сетов
-            const stats = {
-                avgTotal: 19.2,    // Средний тотал в подобных матчах
-                stdDev: 3.1,       // Стандартное отклонение
-                p1Avg: 20.1,       // Средний тотал когда выигрывает P1
-                p2Avg: 18.3        // Средний тотал когда выигрывает P2
-            };
-            
-            // 3. Расчет ожидаемого тотала с учетом вероятностей
+            // 2. Расчет ожидаемого тотала с учетом вероятностей
             const expectedTotal = (probP1 * stats.p1Avg) + (probP2 * stats.p2Avg);
             
-            // 4. Корректировка на силу игроков
-            const dominanceFactor = Math.abs(probP1 - probP2) * 2.5;
-            const adjustedTotal = expectedTotal - dominanceFactor;
+            // 3. Корректировка на стиль игры
+            const styleImpact = (playerStyles.p1 - playerStyles.p2) * 1.2;
+            const adjustedTotal = expectedTotal + styleImpact;
             
             return {
                 expected: adjustedTotal,
-                min: Math.max(15, adjustedTotal - stats.stdDev),
+                min: Math.max(5, adjustedTotal - stats.stdDev),
                 max: adjustedTotal + stats.stdDev,
                 stdDev: stats.stdDev
             };
         }
 
-        // Улучшенный анализ тоталов
+        // Улучшенный анализ тоталов для TT
         function analyzeTotalsWithAI(oddsP1, oddsP2) {
             // Рассчитываем ожидаемый тотал
             const totalPrediction = calculateExpectedTotal(oddsP1, oddsP2);
             
             // Обновляем блок с прогнозом
             document.getElementById('total-prediction').innerHTML = `
-                <h4>Прогноз тотала:</h4>
+                <h4>Прогноз тотала (TT):</h4>
                 <div>Ожидаемый тотал: <strong>${totalPrediction.expected.toFixed(1)}</strong></div>
                 <div>Вероятный диапазон: <strong>${totalPrediction.min.toFixed(1)} - ${totalPrediction.max.toFixed(1)}</strong></div>
                 <div class="probability-bar" style="margin-top: 10px;">
-                    <div class="probability-fill" style="width: ${Math.min(100, 100 * (totalPrediction.expected - 15) / 10)}%"></div>
+                    <div class="probability-fill" style="width: ${Math.min(100, 100 * (totalPrediction.expected - 5) / 6)}%"></div>
                     <div class="probability-value">${totalPrediction.expected.toFixed(1)}</div>
                 </div>
             `;
             
             // Анализируем все доступные тоталы
             const totals = {
-                '17.5': getTotalData('17.5'),
-                '18.5': getTotalData('18.5'),
-                '19.5': getTotalData('19.5'),
-                '20.5': getTotalData('20.5')
+                '7.5': getTotalData('7.5'),
+                '8.5': getTotalData('8.5'),
+                '9.5': getTotalData('9.5'),
+                '10.5': getTotalData('10.5')
             };
             
             const results = [];
@@ -620,11 +626,11 @@
             return results;
         }
 
-        // Формирование рекомендации по тоталам
+        // Формирование рекомендации по тоталам для TT
         function generateTotalRecommendation(analysis) {
             if (analysis.length === 0) return "Недостаточно данных для анализа тоталов";
 
-            let html = '<h4>AI Анализ тоталов:</h4>';
+            let html = '<h4>AI Анализ тоталов (TT):</h4>';
             
             analysis.forEach(item => {
                 const bestBet = item.over.value > item.under.value ? 
