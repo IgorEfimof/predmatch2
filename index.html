@@ -14,6 +14,31 @@
             --positive: #4CAF50;
             --negative: #F44336;
             --info: #2196F3;
+            --header-text: white;
+            --border: #e0e0e0;
+            --keyboard-bg: #f0f0f0;
+            --result-bg: #f8f9fa;
+            --input-bg: #f9f9f9;
+            --shadow: rgba(0,0,0,0.1);
+            --card-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .dark-theme {
+            --primary: #b71c1c;
+            --secondary: #8e0000;
+            --bg: #121212;
+            --card: #1e1e1e;
+            --text: #e0e0e0;
+            --highlight: #333300;
+            --positive: #388E3C;
+            --negative: #D32F2F;
+            --info: #1976D2;
+            --header-text: #ffffff;
+            --border: #333;
+            --keyboard-bg: #2d2d2d;
+            --result-bg: #1a1a1a;
+            --input-bg: #252525;
+            --shadow: rgba(0,0,0,0.5);
+            --card-shadow: 0 1px 3px rgba(0,0,0,0.5);
         }
         * {
             box-sizing: border-box;
@@ -25,11 +50,12 @@
             overflow: hidden;
             touch-action: manipulation;
             -webkit-text-size-adjust: 100%;
+            background: var(--bg);
+            color: var(--text);
+            transition: background 0.3s ease, color 0.3s ease;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
@@ -39,22 +65,29 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            background: var(--card);
+            background: var(--bg);
         }
         .header {
             background: var(--primary);
-            color: white;
+            color: var(--header-text);
             padding: 12px 15px;
             text-align: center;
             font-weight: 600;
             font-size: 17px;
             position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        .clear-btn {
+        .header-buttons {
             position: absolute;
             right: 10px;
             top: 50%;
             transform: translateY(-50%);
+            display: flex;
+            gap: 8px;
+        }
+        .clear-btn, .theme-toggle {
             background: rgba(255,255,255,0.2);
             border: none;
             color: white;
@@ -62,6 +95,14 @@
             border-radius: 4px;
             font-size: 13px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 30px;
+            width: 30px;
+        }
+        .theme-toggle {
+            font-size: 16px;
         }
         .match-info {
             background: var(--secondary);
@@ -82,6 +123,10 @@
             font-size: 13px;
             border-radius: 4px;
         }
+        .dark-theme .match-details {
+            background: #7f0000;
+            color: #ffcdd2;
+        }
         .input-section {
             padding: 12px;
             flex: 1;
@@ -100,11 +145,12 @@
         .custom-input {
             width: 100%;
             padding: 10px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border);
             border-radius: 6px;
             font-size: 15px;
-            background: #f9f9f9;
+            background: var(--input-bg);
             caret-color: transparent;
+            color: var(--text);
         }
         .custom-input:focus {
             outline: none;
@@ -124,8 +170,8 @@
             background: var(--card);
             border-radius: 8px;
             padding: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid #eee;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border);
         }
         .market-card.highlight {
             background-color: var(--highlight);
@@ -136,6 +182,9 @@
             margin-bottom: 8px;
             font-size: 13px;
             color: #666;
+        }
+        .dark-theme .market-name {
+            color: #aaa;
         }
         .btn-group {
             display: grid;
@@ -157,7 +206,7 @@
             background: #757575;
         }
         .results {
-            background: #f8f9fa;
+            background: var(--result-bg);
             border-radius: 8px;
             padding: 12px;
             margin-top: 10px;
@@ -166,9 +215,10 @@
         .result-item {
             margin-bottom: 8px;
             padding: 8px;
-            background: white;
+            background: var(--card);
             border-radius: 6px;
             font-size: 14px;
+            box-shadow: var(--card-shadow);
         }
         .result-value {
             font-weight: 600;
@@ -187,20 +237,21 @@
             grid-template-columns: repeat(4, 1fr);
             gap: 5px;
             padding: 10px;
-            background: #f0f0f0;
-            border-top: 1px solid #ddd;
+            background: var(--keyboard-bg);
+            border-top: 1px solid var(--border);
             position: sticky;
             bottom: 0;
         }
         .key {
-            background: white;
-            border: 1px solid #ddd;
+            background: var(--card);
+            border: 1px solid var(--border);
             border-radius: 6px;
             padding: 12px;
             font-size: 16px;
             text-align: center;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
+            color: var(--text);
         }
         .key-enter {
             background: var(--primary);
@@ -220,6 +271,9 @@
             margin-top: 5px;
             overflow: hidden;
             position: relative;
+        }
+        .dark-theme .probability-bar {
+            background: #333;
         }
         .probability-fill {
             height: 100%;
@@ -244,13 +298,19 @@
             border-radius: 4px;
             font-size: 14px;
         }
+        .dark-theme .recommendation {
+            background-color: #1b3a1f;
+        }
         .ai-insight {
             background-color: #E3F2FD;
-            border-left: 4px solid #2196F3;
+            border-left: 4px solid var(--info);
             padding: 10px;
             margin: 10px 0;
             border-radius: 4px;
             font-size: 14px;
+        }
+        .dark-theme .ai-insight {
+            background-color: #1a2e40;
         }
         .prediction-card {
             background: #FFF3E0;
@@ -259,6 +319,10 @@
             margin: 10px 0;
             border-radius: 4px;
             font-size: 14px;
+        }
+        .dark-theme .prediction-card {
+            background: #332b1a;
+            border-left: 4px solid #b36a00;
         }
         .value-badge {
             display: inline-block;
@@ -278,7 +342,10 @@
     <div class="container">
         <div class="header">
             AI Анализатор ставок TT PRO v2.1
-            <button class="clear-btn" id="clear-btn">Сброс</button>
+            <div class="header-buttons">
+                <button class="theme-toggle" id="theme-toggle">🌙</button>
+                <button class="clear-btn" id="clear-btn">↺</button>
+            </div>
         </div>
         
         <div class="match-info">
@@ -383,6 +450,29 @@
     </div>
 
     <script>
+        // Переключение темы
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+        
+        // Проверяем сохраненную тему
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            body.classList.add('dark-theme');
+            themeToggle.textContent = '☀️';
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-theme');
+            
+            if (body.classList.contains('dark-theme')) {
+                themeToggle.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeToggle.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
         // Защита от масштабирования
         document.addEventListener('gesturestart', e => e.preventDefault());
         document.addEventListener('dblclick', e => e.preventDefault(), { passive: false });
